@@ -1,0 +1,731 @@
+{
+    "14": {
+        "CWE-ID": 14,
+        "Code Example": {
+            "code": "void clearBuffer(char *buffer, size_t size) {\n    memset(buffer, 0, size); // Intended to clear sensitive data\n    // Compiler may optimize this away if 'buffer' is not used again,\n    // leading to sensitive data still being present in memory.\n}\n\nint main() {\n    char sensitiveData[100];\n    // Populate sensitiveData with sensitive information\n    clearBuffer(sensitiveData, sizeof(sensitiveData));\n    // If sensitiveData is never used again, compiler might remove the memset call.\n    return 0;\n}",
+            "summary": "CWE is related to the unintended removal of code by the compiler due to optimizations, which can lead to sensitive information remaining in memory. Specifically, if the buffer containing sensitive data is not accessed afterwards, the compiler may eliminate the code that clears it, leaving the data intact and potentially vulnerable to exposure."
+        }
+    },
+    "119": {
+        "CWE-ID": 119,
+        "Code Example": {
+            "code": "#include <stdio.h>\n#include <string.h>\n\nvoid unsafeFunction(char *input) {\n    char buffer[10];  // Fixed buffer size\n    // Potentially dangerous: copying input without bounds checking\n    strcpy(buffer, input);\n}\n\nint main() {\n    char smallInput[] = \"Hello, world!\";  // Input larger than buffer\n    unsafeFunction(smallInput);\n    return 0;\n}",
+            "summary": "This vulnerability occurs when the software performs operations on a memory buffer but accesses memory locations outside the intended boundaries of that buffer. As a result, it can lead to reading or writing unexpected memory locations, potentially affecting other variables or data structures in the program."
+        }
+    },
+    "120": {
+        "CWE-ID": 120,
+        "Code Example": {
+            "code": "#include <stdio.h>\n#include <string.h>\n\nvoid vulnerable_function(char *input) {\n    char buffer[10];\n    // Vulnerable copy of input to buffer without checking size\n    strcpy(buffer, input);\n    printf(\"Buffer content: %s\\n\", buffer);\n}\n\nint main() {\n    char large_input[20] = \"This input is too long\";\n    vulnerable_function(large_input);\n    return 0;\n}",
+            "summary": "1. The code copies data from an input buffer to an output buffer without verifying the size of the input. 2. This can lead to a buffer overflow, which may allow an attacker to overwrite memory, causing undefined behavior or security vulnerabilities. 3. Proper validation of input size before copying is essential to prevent such issues."
+        }
+    },
+    "121": {
+        "CWE-ID": 121,
+        "Code Example": {
+            "code": "\n#include <stdio.h>\n#include <string.h>\n\nvoid vulnerableFunction(char *input) {\n    char buffer[10];  // Small buffer allocated on the stack\n    strcpy(buffer, input);  // Unsafe copying of input into buffer\n}\n\nint main(int argc, char *argv[]) {\n    if (argc > 1) {\n        vulnerableFunction(argv[1]);  // Passing user input to vulnerable function\n    }\n    return 0;\n}\n",
+            "summary": "Stack-based Buffer Overflow occurs when a buffer allocated on the stack is overwritten, typically due to improper validation of input size. This can lead to overwriting adjacent memory, potentially allowing an attacker to execute arbitrary code or crash the application. The example demonstrates a vulnerable function where user input is copied into a small buffer without proper checks."
+        }
+    },
+    "122": {
+        "CWE-ID": 122,
+        "Code Example": {
+            "code": "#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n\nvoid vulnerable_function(size_t size) {\n    char *buffer = (char *)malloc(size);\n    if (buffer == NULL) {\n        fprintf(stderr, \"Memory allocation failed\\n\");\n        return;\n    }\n    // Intentionally writing beyond the end of the buffer\n    // This can potentially lead to a heap-based buffer overflow\n    memset(buffer, 'A', size + 10);  // Overflowing by 10 bytes\n    free(buffer);\n}\n\nint main() {\n    size_t size = 50;\n    vulnerable_function(size);\n    return 0;\n}",
+            "summary": "Heap-based buffer overflow occurs when a buffer allocated in the heap is overwritten, which can lead to memory corruption and security vulnerabilities. This typically involves allocating memory using functions like malloc() and exceeding the allocated memory bounds. Proper validation and bounds-checking are essential to prevent this type of overflow."
+        }
+    },
+    "123": {
+        "CWE-ID": 123,
+        "Code Example": {
+            "code": "// Example of a Write-What-Where Condition Vulnerability in C\n#include <stdio.h>\n#include <string.h>\n\nvoid vulnerable_function(char *input) {\n    char buffer[50];\n    // Vulnerable to buffer overflow\n    strcpy(buffer, input);\n}\n\nint main(int argc, char *argv[]) {\n    if (argc != 2) {\n        printf(\"Usage: %s <input>\\n\", argv[0]);\n        return 1;\n    }\n    vulnerable_function(argv[1]);\n    return 0;\n}",
+            "summary": "The Write-What-Where Condition vulnerability allows an attacker to overwrite a specified location in memory with arbitrary data, typically by exploiting a buffer overflow. This can lead to unauthorized access and manipulation of critical data, potentially resulting in system compromise or execution of arbitrary code."
+        }
+    },
+    "124": {
+        "CWE-ID": 124,
+        "Code Example": {
+            "code": "\n#include <string.h>\n#include <stdio.h>\n\nvoid vulnerable_function() {\n    char buffer[10];\n    // Incorrectly setting the index to -1, which points before the buffer\n    int index = -1;\n    // This write will cause a buffer underwrite\n    buffer[index] = 'A';\n}\n\nint main() {\n    vulnerable_function();\n    return 0;\n}",
+            "summary": "Buffer Underwrite, also known as Buffer Underflow, occurs when a program writes to a memory location before the start of a designated buffer. This can lead to memory corruption, data loss, or program crashes. In the provided example, the index used to write to the buffer is set to -1, which points to a location prior to the beginning of the buffer, causing a buffer underwrite."
+        }
+    },
+    "125": {
+        "CWE-ID": 125,
+        "Code Example": {
+            "code": "#include <stdio.h>\n#include <string.h>\n\nvoid outOfBoundsReadExample() {\n    char buffer[10];\n    strcpy(buffer, \"Hello, World!\");  // Intentional out-of-bounds write\n    printf(\"Buffer content: %s\\n\", buffer);\n}\n\nint main() {\n    outOfBoundsReadExample();\n    return 0;\n}",
+            "summary": {
+                "definition": "Out-of-bounds read occurs when a program reads memory outside the boundaries of a buffer.",
+                "implication": "This can lead to unpredictable behavior, crashes, or information leaks.",
+                "common_causes": [
+                    "Using unvalidated input to determine buffer sizes.",
+                    "Mismanagement of buffer lengths due to improper calculations or assumptions."
+                ],
+                "prevention": "Always validate input size and use safe standard library functions to manipulate buffers."
+            }
+        }
+    },
+    "126": {
+        "CWE-ID": 126,
+        "Code Example": {
+            "code": "#include <stdio.h>\n#include <string.h>\n\nvoid buffer_over_read_example(char *input) {\n    char buffer[10];\n    strcpy(buffer, input);\n    // Potential buffer over-read if input is larger than buffer\n    for (int i = 0; i <= strlen(buffer); i++) { // Incorrect condition, should be <\n        printf(\"%c\", buffer[i]);\n    }\n}\n\nint main() {\n    char long_input[20] = \"Hello, Buffer Over-read!\";\n    buffer_over_read_example(long_input);\n    return 0;\n}",
+            "summary": [
+                "Buffer Over-read occurs when a program accesses memory beyond the limits of a buffer.",
+                "This can happen when improper bounds checking is performed, leading to reading unintended memory locations.",
+                "In the provided code example, using 'i <= strlen(buffer)' causes the loop to read one element beyond the valid range of 'buffer'.",
+                "Such vulnerabilities can lead to information leakage and potential security breaches."
+            ]
+        }
+    },
+    "127": {
+        "CWE-ID": 127,
+        "Code Example": {
+            "code": "// Example of Buffer Under-read in C\n#include <stdio.h>\n#include <string.h>\n\nvoid underReadExample() {\n    char buffer[10];\n    strcpy(buffer, \"Hello\"); // Fill the buffer\n\n    // Incorrectly reading before the buffer\n    char *ptr = buffer - 1; // Pointer under-read\n    printf(\"Under-read character: %c\\n\", *ptr); // Accessing memory before the buffer\n}\n\nint main() {\n    underReadExample();\n    return 0;\n}",
+            "summary": "Buffer Under-read occurs when a program accesses memory locations that precede the intended buffer. This can lead to unintended behavior, including reading sensitive data or causing program crashes, as it allows access to out-of-bounds memory locations."
+        }
+    },
+    "128": {
+        "CWE-ID": 128,
+        "Code Example": {
+            "code": "def increment_value(value):\n    max_value = 255  # Maximum value for an 8-bit unsigned integer\n    value += 1\n    if value > max_value:\n        value = 0  # Wrap around\n    return value\n\n# Example usage:\n\nprint(increment_value(255))  # This will output 0 due to the wrap-around error.",
+            "summary": "Wrap-around errors occur when a value exceeds the maximum limit for its data type, causing it to reset to a smaller, negative, or undefined value. This can lead to unexpected behavior in software, as demonstrated by incrementing an 8-bit unsigned integer beyond its limit, resulting in the value wrapping around to zero."
+        }
+    },
+    "129": {
+        "CWE-ID": 129,
+        "Code Example": {
+            "code": "def get_element_from_array(arr, index):\n    # Improper validation of index\n    return arr[index]  # Potentially unsafe if index is not checked\n\n# Example usage\ndata = [0, 1, 2, 3, 4]\nprint(get_element_from_array(data, 10))  # This will cause an IndexError if index is out of bounds",
+            "summary": [
+                "Improper validation occurs when an application uses untrusted input for calculating or accessing an array index.",
+                "The lack of validation may allow an attacker to access out-of-bound indices, leading to runtime errors or potential information disclosure.",
+                "A secure implementation should ensure that the index references a valid position within the array, typically by checking if the index is within the valid range."
+            ]
+        }
+    },
+    "130": {
+        "CWE-ID": 130,
+        "Code Example": {
+            "code": "// Example of Improper Handling of Length Parameter Inconsistency in C\n#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n\nvoid processData(char *buffer) {\n    // Assuming the first 4 bytes represent the length of the data.\n    int length = *((int*)buffer);\n    if (length < 0 || length > 100) {\n        printf(\"Invalid length\\n\");\n        return;\n    }\n    // Assuming the data follows immediately after the length field\n    char *data = buffer + 4;\n    if (strlen(data) != length) {  // Incorrect length check\n        printf(\"Length mismatch\\n\");\n        return;\n    }\n    printf(\"Data: %s\\n\", data);\n}\n\nint main() {\n    char buffer[104];\n    *((int*)buffer) = 10;  // Length declared\n    strcpy(buffer + 4, \"short\");  // Actual data length is less than declared\n    processData(buffer);\n    return 0;\n}",
+            "summary": [
+                "The product parses a message or structure that includes a length parameter.",
+                "It fails to properly validate the length field against the actual length of the associated data.",
+                "This inconsistency can lead to vulnerabilities such as buffer overflows or incorrect data processing."
+            ]
+        }
+    },
+    "131": {
+        "CWE-ID": 131,
+        "Code Example": {
+            "code": "// Example of Incorrect Calculation of Buffer Size\n#include <stdio.h>\n#include <string.h>\n\nvoid unsafeBufferAllocation(int inputLength) {\n    // Incorrect calculation of buffer size, should have considered the length of input properly\n    char buffer[10];  // Fixed size buffer\n\n    // Vulnerable to buffer overflow if inputLength > 10\n    if (inputLength > 10) {\n        printf(\"Input length is too long, possible overflow!\\n\");\n        return;\n    }\n    \n    char input[20];  // Larger input buffer for demonstration\n    snprintf(input, sizeof(input), \"User input data: %d\", inputLength);\n    // Possible buffer overflow risk\n    strcpy(buffer, input);\n    printf(\"Buffer content: %s\\n\", buffer);\n}\n\nint main() {\n    unsafeBufferAllocation(15);  // This will likely cause a buffer overflow\n    return 0;\n}",
+            "summary": "The product fails to correctly compute the size needed for allocating a buffer, potentially resulting in a buffer overflow. When the input length exceeds the buffer's capacity, this miscalculation can lead to unintended overwriting of memory, which can create vulnerabilities in the software."
+        }
+    },
+    "134": {
+        "CWE-ID": 134,
+        "Code Example": {
+            "code": "// Example code demonstrating the vulnerability\n#include <stdio.h>\n#include <string.h>\n\nvoid vulnerable_function(char *input) {\n    char buffer[100];\n    strcpy(buffer, input); // Copy input to buffer\n    printf(buffer); // Vulnerable use of an uncontrolled format string\n}\n\nint main(int argc, char *argv[]) {\n    if (argc < 2) {\n        printf(\"Usage: %s <input>\\n\", argv[0]);\n        return 1;\n    }\n    vulnerable_function(argv[1]);\n    return 0;\n}",
+            "summary": "CWE-134 occurs when a function uses a format string that is provided by an external source, such as user input. This can lead to vulnerabilities, such as executing arbitrary code, due to improper handling of format specifiers. Proper sanitization or validation of input should be implemented to mitigate this risk."
+        }
+    },
+    "135": {
+        "CWE-ID": 135,
+        "Code Example": {
+            "code": "#include <stdio.h>\n#include <string.h>\n#include <wchar.h>\n\nint main() {\n    char *multiByteString = \"Hello, \u4e16\u754c\"; // A multi-byte string\n    int length = strlen(multiByteString); // Incorrectly calculates length for multi-byte characters\n    printf(\"Length of the string: %d\\n\", length);\n    return 0;\n}",
+            "summary": "This example demonstrates an incorrect calculation of the length of a multi-byte string using 'strlen', which only counts single-byte characters. As a result, it fails to account for the actual number of bytes used by multi-byte or wide characters, leading to potential buffer overflows or incorrect string handling."
+        }
+    },
+    "170": {
+        "CWE-ID": 170,
+        "Code Example": {
+            "code": "void copyString(char *dest, const char *src) {\n    // Potentially unsafe copying of strings\n    while (*src) {\n        *dest++ = *src++;\n    }\n    // Missing null termination\n}",
+            "summary": [
+                "Improper Null Termination occurs when a string or array is not properly terminated with a null character.",
+                "This can lead to issues such as buffer overflows or access to unintended memory, causing undefined behavior.",
+                "Properly terminating strings and arrays is critical to ensure that string handling functions operate safely."
+            ]
+        }
+    },
+    "188": {
+        "CWE-ID": 188,
+        "Code Example": {
+            "code": "// Example of reliance on memory layout in C\n#include <stdio.h>\n#include <string.h>\n\ntypedef struct {\n    char username[20];\n    int userID;\n} User;\n\nvoid printUserInfo(User *user) {\n    // Assuming the memory layout is as we expect, we directly access userID\n    printf(\"User ID: %d\\n\", user->userID);\n    // Assuming there's a termination character for username, which might not be present\n    printf(\"Username: %s\\n\", user->username);\n}\n\nint main() {\n    // Improperly initialized user struct, leaving username uninitialized\n    User user;\n    user.userID = 1;\n\n    // Unsafe to use printUserInfo, as username contains garbage value\n    printUserInfo(&user);\n    return 0;\n}",
+            "summary": "The product makes invalid assumptions about how the memory layout of a User struct is organized, specifically regarding the initialization of the username field. This reliance can lead to unintended behavior when accessing memory, such as printing uninitialized data or causing buffer overflows if the memory layout changes."
+        }
+    },
+    "191": {
+        "CWE-ID": 191,
+        "Code Example": {
+            "code": "int subtract(int a, int b) {\n    return a - b;\n}\n\npublic static void main(String[] args) {\n    int result = subtract(0, 1); // This can cause an underflow\n    System.out.println(\"Result: \" + result);\n}",
+            "summary": "1. Integer Underflow occurs when a subtraction results in a value that is less than the minimum allowable integer value.\n2. This underflow can lead to incorrect calculations and behaviors in software applications.\n3. It is essential to validate inputs and ensure proper handling of edge cases to prevent underflow scenarios."
+        }
+    },
+    "192": {
+        "CWE-ID": 192,
+        "Code Example": {
+            "code": "function processInput(input) {\n    // Incorrectly coercing a string to an integer without validation\n    var num = parseInt(input);\n    // Performing arithmetic operation that may cause overflow\n    var result = num + 10;\n    console.log('The result is: ' + result);\n}\n\nprocessInput('9223372036854775807'); // This input could lead to overflow\nprocessInput('123abc'); // This input will not be a valid number",
+            "summary": [
+                "Integer coercion errors occur due to improper type casting, leading to unexpected behavior.",
+                "Using functions like parseInt without validating the input can lead to unintended consequences.",
+                "Arithmetic operations on coerced integers may result in overflow or underflow, causing security vulnerabilities.",
+                "It is essential to validate and sanitize user input before performing operations that involve type coercion."
+            ]
+        }
+    },
+    "194": {
+        "CWE-ID": 194,
+        "Code Example": {
+            "code": "int8_t a = -5;  // -5 in 8-bit signed integer (0xFB)\nint32_t b = a;   // Sign extension occurs here\n\nprintf(\"Value of b: %d\\n\", b);  // Unexpectedly prints 4294967291 on a 32-bit system",
+            "summary": [
+                "The CWE describes a problem where a number undergoes an operation that leads to sign extension when promoted to a larger data type.",
+                "If the original number is negative, the resulting value after the extension can be unexpected.",
+                "This can create vulnerabilities in software since the output may not be as intended, leading to potential weaknesses."
+            ]
+        }
+    },
+    "195": {
+        "CWE-ID": 195,
+        "Code Example": {
+            "code": "// Example of Signed to Unsigned Conversion Error\n\n#include <stdio.h>\n\nint main() {\n    int signedValue = -1; // Signed integer\n    unsigned int unsignedValue = (unsigned int)signedValue; // Cast to unsigned\n\n    printf(\"Signed Value: %d\\n\", signedValue);\n    printf(\"Unsigned Value: %u\\n\", unsignedValue); // Unexpected result\n\n    return 0;\n}",
+            "summary": "The code demonstrates a Signed to Unsigned Conversion Error where a signed integer (-1) is cast to an unsigned integer. This results in an unexpected value due to the signed value not being representable in the unsigned range, leading to potential logic errors or vulnerabilities."
+        }
+    },
+    "196": {
+        "CWE-ID": 196,
+        "Code Example": {
+            "code": "public class UnsignedToSignedExample {\n    public static void main(String[] args) {\n        int unsignedValue = 300; // Assume this represents an unsigned value\n        // Casting unsignedValue to a signed byte\n        byte signedValue = (byte) unsignedValue; // This will produce an unexpected value\n        System.out.println(\"Signed Value: \" + signedValue); // Output may not be as expected\n    }\n}",
+            "summary": [
+                "The application uses an unsigned primitive type to represent data.",
+                "A cast is performed from an unsigned primitive to a signed primitive.",
+                "This conversion can lead to unexpected values if the original unsigned value exceeds the range of the signed type.",
+                "This issue can result in incorrect program behavior, data corruption, or security vulnerabilities."
+            ]
+        }
+    },
+    "197": {
+        "CWE-ID": 197,
+        "Code Example": {
+            "code": "int main() {\n    double largeNumber = 123456789.987654321;\n    // Possible truncation error when converting double to int\n    int truncatedNumber = (int)largeNumber;\n    printf(\"Original number: %f\\n\", largeNumber);\n    printf(\"Truncated number: %d\\n\", truncatedNumber);\n    return 0;\n}",
+            "summary": "Numeric truncation errors happen when larger data types are cast to smaller ones, leading to loss of data. In this example, a double is cast to an int, truncating its decimal points and potentially altering its original value."
+        }
+    },
+    "242": {
+        "CWE-ID": 242,
+        "Code Example": {
+            "code": "#include <stdio.h>\n#include <stdlib.h>\n\nint main() {\n    char *username;\n    username = (char *)malloc(10 * sizeof(char));\n    if (username == NULL) {\n        printf(\"Memory allocation failed!\\n\");\n        return 1;\n    }\n\n    // Dangerous function: gets() can cause buffer overflow\n    printf(\"Enter your username: \");\n    gets(username);  // CWE-676: Use of Inherently Dangerous Function\n\n    printf(\"Username: %s\\n\", username);\n    free(username);\n    return 0;\n}",
+            "summary": "The code calls the 'gets()' function, which is inherently unsafe as it does not perform bounds checking and can lead to buffer overflows. This usage cannot be guaranteed to operate safely, potentially allowing attackers to exploit the vulnerability."
+        }
+    },
+    "243": {
+        "CWE-ID": 243,
+        "Code Example": {
+            "code": "#include <unistd.h>\n#include <stdio.h>\n#include <stdlib.h>\n#include <errno.h>\n\nint main() {\n    // Attempt to create a chroot jail\n    if (chroot(\"/path/to/jail\") == -1) {\n        perror(\"chroot failed\");\n        exit(EXIT_FAILURE);\n    }\n    // The working directory remains the same as the original process\n    // Potentially insecure since files outside the jail may still be accessed\n\n    // Example of opening a file that could exist outside the chroot jail\n    FILE *fp = fopen(\"/etc/passwd\", \"r\");  // This access bypasses the jail\n    if (fp != NULL) {\n        printf(\"Successfully opened /etc/passwd\\n\");\n        fclose(fp);\n    } else {\n        perror(\"Failed to open /etc/passwd\");\n    }\n\n    return 0;\n}",
+            "summary": "The CWE identifies the issue where a system uses the chroot() call to create a secure jail environment, but fails to change the current working directory afterward. This oversight leaves the process with access to files outside the jail, undermining the intended security mechanism."
+        }
+    },
+    "244": {
+        "CWE-ID": 244,
+        "Code Example": {
+            "code": "\n#include <stdio.h>\n#include <stdlib.h>\n\nvoid vulnerable_function() {\n    // Allocate memory for sensitive information\n    char *sensitive_data = malloc(100);\n    snprintf(sensitive_data, 100, \"Secret Password: 1234\");\n    printf(\"Sensitive: %s\\n\", sensitive_data);\n\n    // Resize the buffer without clearing it first\n    char *new_buffer = realloc(sensitive_data, 50);\n    // Sensitive data remains in memory and may be exposed\n    // Use new_buffer as needed, but sensitive_data is still in memory\n\n    // When done, free the new buffer\n    free(new_buffer);\n}\n\nint main() {\n    vulnerable_function();\n    return 0;\n}",
+            "summary": [
+                "Improper handling of memory allocation can lead to exposure of sensitive information.",
+                "When using realloc() for resizing memory buffers that store sensitive data, the original data may remain in memory.",
+                "Failure to clear or securely delete the original data before resizing can allow attackers to access sensitive information."
+            ]
+        }
+    },
+    "362": {
+        "CWE-ID": 362,
+        "Code Example": {
+            "code": "import threading\n\nclass BankAccount:\n    def __init__(self, balance=0):\n        self.balance = balance\n        self.lock = threading.Lock()\n\n    def deposit(self, amount):\n        self.lock.acquire()  # Acquire the lock to ensure exclusive access\n        temp_balance = self.balance\n        temp_balance += amount\n        # Simulate a timing window where context switch can occur\n        self.balance = temp_balance\n        self.lock.release()  # Release the lock\n\n    def withdraw(self, amount):\n        self.lock.acquire()  # Acquire the lock to ensure exclusive access\n        temp_balance = self.balance\n        if temp_balance >= amount:\n            temp_balance -= amount\n        self.balance = temp_balance\n        self.lock.release()  # Release the lock\n\naccount = BankAccount(100)\n\ndef worker_deposit():\n    account.deposit(50)\n\ndef worker_withdraw():\n    account.withdraw(30)\n\nthread1 = threading.Thread(target=worker_deposit)\nthread2 = threading.Thread(target=worker_withdraw)\n\nthread1.start()\nthread2.start()\n\nthread1.join()\nthread2.join()\n\nprint(account.balance)  # Output could be inconsistent if lock is improperly used",
+            "summary": [
+                "The product has code that executes concurrently requiring access to a shared resource.",
+                "Temporary non-exclusive access to the shared resource leads to potential modifications by another thread.",
+                "This can result in a race condition where the outcome of operations may vary unexpectedly."
+            ]
+        }
+    },
+    "364": {
+        "CWE-ID": 364,
+        "Code Example": {
+            "code": "#include <stdio.h>\n#include <stdlib.h>\n#include <signal.h>\n#include <unistd.h>\n\nvolatile sig_atomic_t flag = 0;\n\nvoid signal_handler(int sig) {\n    flag = 1; // Set a flag when the signal is caught\n}\n\nint main() {\n    signal(SIGINT, signal_handler); // Set up the signal handler\n\n    for (int i = 0; i < 10; i++) {\n        printf(\"Loop iteration %d\\n\", i);\n        sleep(1);\n        // Check the flag variable in a critical section (race condition potential)\n        if (flag) {\n            printf(\"Signal caught, exiting\\n\");\n            exit(0);\n        }\n    }\n    return 0;\n}",
+            "summary": [
+                "The use of a signal handler can introduce a race condition if not handled properly.",
+                "In this example, the flag variable is shared between the signal handler and the main program without proper synchronization.",
+                "This can lead to unpredictable behavior if the signal handler modifies the flag while it is being checked in a critical section of the main loop.",
+                "Race conditions can result in inconsistent states and potential security vulnerabilities."
+            ]
+        }
+    },
+    "366": {
+        "CWE-ID": 366,
+        "Code Example": {
+            "code": "import threading\n\nclass Counter:\n    def __init__(self):\n        self.value = 0\n        self.lock = threading.Lock()\n\n    def increment(self):\n        # Simulate some work\n        temp = self.value\n        temp += 1\n        self.value = temp\n\ndef worker(counter):\n    for _ in range(100000):\n        counter.increment()\n\ncounter = Counter()\nthreads = [threading.Thread(target=worker, args=(counter,)) for _ in range(2)]\n\nfor thread in threads:\n    thread.start()\n\nfor thread in threads:\n    thread.join()\n\nprint(f'Final counter value: {counter.value}')  # This may not always be 200000 due to race condition.",
+            "summary": [
+                "Race conditions occur when multiple threads access shared resources concurrently.",
+                "If threads do not synchronize access to shared resources, they may read or write invalid data.",
+                "This can lead to unpredictable behavior and undefined execution states."
+            ]
+        }
+    },
+    "374": {
+        "CWE-ID": 374,
+        "Code Example": {
+            "code": "class SensitiveData {\n    private String secret;\n\n    public SensitiveData(String secret) {\n        this.secret = secret;\n    }\n\n    public String getSecret() {\n        return secret;\n    }\n\n    public void setSecret(String secret) {\n        this.secret = secret;\n    }\n}\n\npublic class UntrustedMethodExample {\n    public static void untrustedMethod(SensitiveData data) {\n        // An untrusted method that may modify the passed mutable object\n        data.setSecret(\"modified secret\");\n    }\n\n    public static void main(String[] args) {\n        SensitiveData sensitiveData = new SensitiveData(\"original secret\");\n        untrustedMethod(sensitiveData);\n        System.out.println(sensitiveData.getSecret()); // Outputs: modified secret\n    }\n}",
+            "summary": [
+                "Passing mutable objects directly to methods can lead to unauthorized modifications.",
+                "The example demonstrates how an untrusted method can change the state of a mutable object.",
+                "Developers should avoid passing non-cloned mutable data to untrusted methods to prevent security vulnerabilities."
+            ]
+        }
+    },
+    "375": {
+        "CWE-ID": 375,
+        "Code Example": {
+            "code": "class MutableObject {\n    public int value;\n    public MutableObject(int value) {\n        this.value = value;\n    }\n}\n\npublic class Example {\n    private static MutableObject mutableObject = new MutableObject(10);\n\n    // Vulnerable method that returns a mutable object\n    public static MutableObject getMutableObject() {\n        return mutableObject;\n    }\n\n    public static void main(String[] args) {\n        MutableObject obj = getMutableObject();\n        // Untrusted caller modifies the mutable object\n        obj.value = 20;\n        System.out.println(\"Modified value: \" + mutableObject.value); // Outputs: Modified value: 20\n    }\n}",
+            "summary": "Returning a mutable object to an untrusted caller can allow that caller to alter the object's state without restrictions. This can lead to unintended side effects where the original object data is altered or deleted, potentially compromising the integrity and consistency of the program. It is important to return immutable objects or clones to prevent such vulnerabilities."
+        }
+    },
+    "401": {
+        "CWE-ID": 401,
+        "Code Example": {
+            "code": "#include <stdlib.h>\n#include <stdio.h>\n\nvoid exampleFunction() {\n    char *data = (char *)malloc(100 * sizeof(char)); // memory allocation\n    if (data == NULL) {\n        printf(\"Memory allocation failed\\n\");\n        return;\n    }\n\n    // Use the allocated memory\n    snprintf(data, 100, \"Hello, World!\");\n    printf(\"%s\\n\", data);\n\n    // Memory is not released here; this leads to memory leak\n}\n\nint main() {\n    exampleFunction();\n    // Missing free(data) here leads to memory leak\n    return 0;\n}",
+            "summary": "1. The code allocates memory using malloc but does not release it after use, leading to memory leaks. 2. Failing to track the lifetime of allocated memory can cause a gradual increase in memory consumption. 3. It is crucial to free allocated memory to prevent resource exhaustion and ensure optimal application performance."
+        }
+    },
+    "415": {
+        "CWE-ID": 415,
+        "Code Example": {
+            "code": "#include <stdlib.h>\n#include <stdio.h>\n\nint main() {\n    char *ptr = (char *)malloc(100);\n    if (ptr == NULL) {\n        printf(\"Memory allocation failed\\n\");\n        return 1;\n    }\n\n    // First free of allocated memory\n    free(ptr);\n\n    // Attempt to free the same pointer again (double free)\n    free(ptr); // This can lead to undefined behavior\n\n    return 0;\n}",
+            "summary": "Double Free occurs when the same memory address is freed multiple times; this can lead to undefined behavior, such as corruption of memory management data structures, and can result in security vulnerabilities such as arbitrary code execution or crashes."
+        }
+    },
+    "416": {
+        "CWE-ID": 416,
+        "Code Example": {
+            "code": "#include <stdio.h>\n#include <stdlib.h>\n\nint main() {\n    int *ptr = (int *)malloc(sizeof(int));\n    *ptr = 42; // Allocate and set value\n    free(ptr); // Free the memory\n\n    // At this point, ptr is dangling because the memory it pointed to is freed.\n    // Using ptr here leads to undefined behavior.\n    printf(\"Value: %d\\n\", *ptr); // Use-after-free: accessing freed memory\n\n    // This memory can be allocated again and used elsewhere\n    int *newPtr = (int *)malloc(sizeof(int));\n    *newPtr = 100;\n\n    // Now, ptr references invalid memory location that is possibly allocated to newPtr.\n    // With original ptr now pointing to freed memory, this can lead to vulnerabilities.\n\n    free(newPtr); // Free the newPtr\n    return 0;\n}",
+            "summary": [
+                "Use After Free occurs when a program continues to reference memory after it has been freed.",
+                "This can lead to undefined behavior as the freed memory can be reallocated and modified,",
+                "which makes any operations using the original pointer invalid.",
+                "The original pointer may reference memory that does not belong to it, causing potential vulnerabilities."
+            ]
+        }
+    },
+    "457": {
+        "CWE-ID": 457,
+        "Code Example": {
+            "code": "int main() {\n    int x;\n    int y = x + 5; // x is uninitialized\n    printf(\"The result is: %d\\n\", y);\n    return 0;\n}",
+            "summary": "Using an uninitialized variable can lead to undefined behavior in a program. In this example, variable 'x' is declared but not initialized before being used in a calculation. This may result in unpredictable values and unintended results."
+        }
+    },
+    "460": {
+        "CWE-ID": 460,
+        "Code Example": {
+            "code": "class ResourceHandler {\n    private Object resource;\n\n    public void processResource() {\n        try {\n            resource = new Object(); // acquire resource\n            // processing the resource\n            throw new RuntimeException(\"Something went wrong\"); // simulate an exception\n        } catch (RuntimeException e) {\n            // exception is thrown, but resource is not cleaned up\n            System.out.println(\"Handling exception: \" + e.getMessage());\n        }\n        // resource may still be holding references or locks\n    }\n\n    public void cleanup() {\n        if (resource != null) {\n            resource = null; // improper cleanup\n        }\n    }\n}",
+            "summary": [
+                "Improper cleanup occurs when an exception is thrown and the system does not adequately reset its state.",
+                "If the state is not cleaned up correctly, it can lead to unexpected behavior or resource leaks.",
+                "In the provided example, resources are not properly released in the event of an exception."
+            ]
+        }
+    },
+    "462": {
+        "CWE-ID": 462,
+        "Code Example": {
+            "code": "// Example of duplicate keys in a Python dictionary (associative list)\n\n# This dictionary is intended to store unique keys, but duplicate keys can lead to issues\nassociative_list = {\n    'key1': 'value1',\n    'key2': 'value2',\n    'key1': 'value3'  # 'key1' is duplicated\n}\n\n# When printed, only the last value for 'key1' is retained\nprint(associative_list)  # Output: {'key1': 'value3', 'key2': 'value2'}\n\n# Accessing 'key1' will yield 'value3', resulting in loss of information about 'value1'",
+            "summary": "1. Duplicate keys in associative lists can create ambiguity, leading to unexpected behavior.\n2. Non-unique keys may cause previously stored values to be overwritten, thus resulting in loss of data.\n3. Developers should ensure that keys are unique to maintain data integrity and prevent errors."
+        }
+    },
+    "463": {
+        "CWE-ID": 463,
+        "Code Example": {
+            "code": "\n#include <stdio.h>\n#include <stdlib.h>\n\ntypedef struct Node {\n    int data;\n    struct Node* next;\n} Node;\n\n// Function to delete the first node\nvoid deleteFirstNode(Node** head) {\n    if (*head == NULL) return;\n    Node* temp = *head;\n    *head = (*head)->next;\n    free(temp);\n}\n\n// Function to demonstrate a sentinel\nvoid deleteSentinel(Node** head) {\n    Node* sentinel = (Node*)malloc(sizeof(Node));\n    sentinel->next = *head;\n    *head = sentinel; // Sentinel node added\n    // Incorrectly deleting the sentinel node \n    deleteFirstNode(head); // This will delete the sentinel\n}\n\nint main() {\n    Node* head = NULL;\n    // Example of normal node addition can be added here\n    deleteSentinel(&head); // Deleting the sentinel \n    return 0;\n}",
+            "summary": "1. The Deletion of Data Structure Sentinel vulnerability occurs when a sentinel node, which is used to simplify list operations, is mistakenly deleted. 2. This can lead to serious logical errors and corrupt data structures as the linked list may no longer function correctly without the sentinel. 3. Proper care must be taken to ensure that sentinel nodes are not accidentally removed during list manipulations."
+        }
+    },
+    "464": {
+        "CWE-ID": 464,
+        "Code Example": {
+            "code": "// Example code demonstrating the problem of accidental addition of a data structure sentinel:\n\n#include <stdio.h>\n#include <stdlib.h>\n\ntypedef struct Node {\n    int data;\n    struct Node* next;\n} Node;\n\nNode* createNode(int data) {\n    Node* newNode = (Node*)malloc(sizeof(Node));\n    newNode->data = data;\n    newNode->next = NULL;\n    return newNode;\n}\n\nvoid addNode(Node** head, int data) {\n    Node* newNode = createNode(data);\n    if (*head == NULL) {\n        *head = newNode;\n        return;\n    }\n    Node* temp = *head;\n    while (temp->next != NULL) {\n        temp = temp->next;\n    }\n    // Accidental addition of a sentinel node\n    temp->next = newNode;\n} \n\nvoid printList(Node* head) {\n    Node* temp = head;\n    while (temp != NULL) {\n        printf(\"%d -> \", temp->data);\n        temp = temp->next;\n    }\n    printf(\"NULL\\n\");\n}\n\nint main() {\n    Node* head = NULL;\n    addNode(&head, 1);\n    addNode(&head, 2);\n    addNode(&head, 3);\n    // Following line could inadvertently add a sentinel value\n    addNode(&head, 0);  // If 0 is used as a sentinel value\n    printList(head);\n    return 0;\n}",
+            "summary": "The CWE describes a vulnerability arising from the unintended addition of a data structure sentinel within a program, which can lead to significant logic errors. Such sentinel values, often used to signify the end of a data structure, can unintentionally interfere with normal operations if not handled correctly, resulting in incorrect program behavior or crashes. Developers should be cautious about how sentinel values are introduced and managed within data structures."
+        }
+    },
+    "466": {
+        "CWE-ID": 466,
+        "Code Example": {
+            "code": "#include <stdio.h>\n#include <stdlib.h>\n\nchar* get_buffer(int size) {\n    char *buffer = (char*)malloc(size * sizeof(char));\n    if (buffer == NULL) {\n        return NULL; // Handle allocation failure\n    }\n    // Return a pointer to the allocated memory\n    return buffer;\n}\n\nvoid risky_function() {\n    char *ptr = get_buffer(10);\n    // Intentionally returning a pointer beyond the allocated buffer\n    char *out_of_bounds_ptr = ptr + 20; // This can lead to undefined behavior\n    printf(\"Pointer Address: %p\\n\", (void*)out_of_bounds_ptr);\n    free(ptr); // Free the allocated buffer\n}\n\nint main() {\n    risky_function();\n    return 0;\n}",
+            "summary": [
+                "The provided function can return a pointer to allocated memory that may go beyond the intended buffer size.",
+                "If the pointer returned is manipulated further, it can lead to unintended access to memory, causing undefined behavior.",
+                "This vulnerability can lead to security issues such as reading or writing to unintended memory locations."
+            ]
+        }
+    },
+    "467": {
+        "CWE-ID": 467,
+        "Code Example": {
+            "code": "int main() {\n    int *array = (int *)malloc(10 * sizeof(int));\n    printf(\"Size of allocated memory: %zu\\n\", sizeof(array)); // Incorrect usage\n    free(array);\n    return 0;\n}",
+            "summary": [
+                "Using sizeof() on a pointer type yields the size of the pointer itself, not the allocated memory.",
+                "This can lead to confusion when trying to determine how much memory has been allocated.",
+                "Instead, the correct method would be to track the allocated size separately, or use the multiplier directly when allocating memory."
+            ]
+        }
+    },
+    "468": {
+        "CWE-ID": 468,
+        "Code Example": {
+            "code": "// Example code demonstrating Incorrect Pointer Scaling in C\n#include <stdio.h>\n\nvoid incorrectPointerScalingExample() {\n    int array[5] = {1, 2, 3, 4, 5};\n    int *ptr = array;\n    int offset = 2;\n\n    // Incorrectly scaling the pointer with sizeof(int)\n    // This causes ptr to point to wrong memory location\n    // It should have been: ptr + offset\n    int *wrongPtr = ptr + offset * sizeof(int);\n\n    printf(\"Value at wrongPtr: %d\\n\", *wrongPtr);  // This may lead to undefined behavior\n}\n\nint main() {\n    incorrectPointerScalingExample();\n    return 0;\n}",
+            "summary": [
+                "Incorrect Pointer Scaling occurs when arithmetic on pointers is performed incorrectly due to implicit scaling based on data types.",
+                "In C and C++, pointer arithmetic automatically considers the size of the data type when moving pointers, which can lead to errors if the programmer is not careful.",
+                "For example, multiplying the offset by sizeof(int) when calculating a new pointer position can cause the pointer to point to an unintended memory location, leading to potential crashes or data corruption."
+            ]
+        }
+    },
+    "469": {
+        "CWE-ID": 469,
+        "Code Example": {
+            "code": "#include <stdio.h>\n#include <stdlib.h>\n\nvoid exampleFunction() {\n    int *array1 = (int *)malloc(10 * sizeof(int));\n    int *array2 = (int *)malloc(5 * sizeof(int));\n\n    // Incorrect pointer subtraction\n    size_t sizeDifference = (size_t)((char *)array2 - (char *)array1);\n\n    printf(\"Size difference: %zu\\n\", sizeDifference);\n    \n    free(array1);\n    free(array2);\n}\n\nint main() {\n    exampleFunction();\n    return 0;\n}",
+            "summary": "The code performs pointer subtraction between two pointers that do not belong to the same memory allocation (array1 and array2). This can lead to an incorrect size calculation since pointers must exist within the same memory allocation to be subtracted safely and meaningfully. Performing such operations can result in undefined behavior or misleading results."
+        }
+    },
+    "474": {
+        "CWE-ID": 474,
+        "Code Example": {
+            "code": "import os\n\n# Uses os.system which may behave differently on various OS\nresult = os.system('echo Hello, World!')",
+            "summary": [
+                "The code utilizes the 'os.system' function, which can yield inconsistent results across different operating systems.",
+                "This inconsistency arises because the implementation details and commands available in 'os.system' may change depending on the OS and its version.",
+                "Developers should be cautious when using such functions to ensure cross-platform compatibility."
+            ]
+        }
+    },
+    "476": {
+        "CWE-ID": 476,
+        "Code Example": {
+            "code": "void processData(char *data) {\n    // Potential NULL pointer dereference\n    printf(\"Data: %s\\n\", data);\n}\n\nint main() {\n    char *str = NULL;\n    processData(str); // Passing NULL pointer\n    return 0;\n}",
+            "summary": "1. NULL Pointer Dereference occurs when a program attempts to access or modify data through a pointer that is expected to be non-NULL. \n2. If the pointer is NULL, this can lead to crashes or undefined behavior. \n3. The example demonstrates this by passing a NULL pointer to the `processData` function, which attempts to dereference it."
+        }
+    },
+    "478": {
+        "CWE-ID": 478,
+        "Code Example": {
+            "code": "// Example of a switch statement without a default case\n\nint score = 85;\nswitch (score) {\n    case 90:\n        System.out.println(\"Grade A\");\n        break;\n    case 80:\n        System.out.println(\"Grade B\");\n        break;\n    case 70:\n        System.out.println(\"Grade C\");\n        break;\n    // Missing default case\n}",
+            "summary": "The code contains a switch statement that evaluates a variable 'score', but it lacks a default case to handle unexpected values. This oversight can lead to unhandled scenarios, resulting in unpredictable behavior or errors in the application."
+        }
+    },
+    "479": {
+        "CWE-ID": 479,
+        "Code Example": {
+            "code": "#include <stdio.h>\n#include <signal.h>\n#include <unistd.h>\n\n// Non-reentrant function\nvoid non_reentrant_function() {\n    printf(\"Non-reentrant function called\\n\");\n    sleep(1); // Simulates a delay\n}\n\n// Signal handler\nvoid signal_handler(int signum) {\n    // Calling a non-reentrant function inside a signal handler\n    non_reentrant_function();\n}\n\nint main() {\n    // Register signal handler for SIGINT\n    signal(SIGINT, signal_handler);\n\n    // Infinite loop to keep the program running\n    while (1) {\n        printf(\"Running... Press Ctrl+C to trigger signal handler.\\n\");\n        sleep(2);\n    }\n    return 0;\n}",
+            "summary": [
+                "The issue involves the definition of a signal handler that invokes a non-reentrant function, which can lead to undefined behavior if the function is interrupted.",
+                "Non-reentrant functions are those that cannot be safely called concurrently, meaning that if a signal is received while the function is executing, and the handler calls this function again, it can cause data inconsistencies.",
+                "This vulnerability can result in application crashes, data corruption, or unexpected behavior due to the signals being handled while the function is still in execution."
+            ]
+        }
+    },
+    "480": {
+        "CWE-ID": 480,
+        "Code Example": {
+            "code": "if (userRole = 'admin') { // Incorrect: assignment operator instead of comparison\n    grantAccess();\n} else {\n    denyAccess();\n}",
+            "summary": [
+                "The software uses an incorrect operator, leading to unexpected behavior.",
+                "In this example, an assignment operator '=' is used instead of the comparison operator '==' or '==='.",
+                "This mistake can cause security vulnerabilities by granting access inappropriately."
+            ]
+        }
+    },
+    "481": {
+        "CWE-ID": 481,
+        "Code Example": {
+            "code": "if (a = 5) {\n    // this is incorrect, should use '==' instead of '='\n    printf(\"a is 5\\n\");\n}",
+            "summary": [
+                "The code mistakenly uses the assignment operator '=' instead of the comparison operator '==' in an if statement.",
+                "This can lead to logical errors, as the condition will always evaluate to true (if 'a' can be assigned) and the intended comparison will not be performed.",
+                "Ensuring the correct use of operators is crucial for maintaining the intended logic and flow of the program."
+            ]
+        }
+    },
+    "482": {
+        "CWE-ID": 482,
+        "Code Example": {
+            "code": "int x;\nif (x == 5) {\n    x = 10;  // Intended to assign, mistakenly used comparison operator\n}",
+            "summary": [
+                "The code intends to assign a value to a variable but mistakenly uses a comparison operator instead.",
+                "This mistake can lead to unintended behavior, as the variable may not be updated as expected.",
+                "Correcting the operator from '==' (comparison) to '=' (assignment) will resolve the issue."
+            ]
+        }
+    },
+    "483": {
+        "CWE-ID": 483,
+        "Code Example": {
+            "code": "if (x > 0)\n  doSomething();\n  doSomethingElse();",
+            "summary": "1. Incorrect block delimitation occurs when the code lacks explicit delimiters for blocks intended to contain multiple statements.\n2. In the example, only the first statement, `doSomething();`, is executed conditionally when `x > 0`, while `doSomethingElse();` is always executed regardless of the condition.\n3. To prevent this logic error, the statements should be enclosed in braces `{}` to form a clear and intentional block."
+        }
+    },
+    "484": {
+        "CWE-ID": 484,
+        "Code Example": {
+            "code": "// Example of omitted break statement in a switch case\n\nvoid exampleFunction(int value) {\n    switch (value) {\n        case 1:\n            printf(\"Case 1 executed\\n\");\n            // Missing break statement\n        case 2:\n            printf(\"Case 2 executed\\n\");\n            break;\n        case 3:\n            printf(\"Case 3 executed\\n\");\n            break;\n        default:\n            printf(\"Default case executed\\n\");\n    }\n}",
+            "summary": "The CWE describes a flaw where a 'break' statement is omitted in a switch case construct, leading to unintended fall-through behavior. This causes multiple cases to execute when only one was intended, which can lead to unexpected results or bugs in the code."
+        }
+    },
+    "495": {
+        "CWE-ID": 495,
+        "Code Example": {
+            "code": "class DataManager {\n    private List<String> data = new ArrayList<>();\n\n    public List<String> getData() {\n        return data; // This exposes the private data structure directly.\n    }\n\n    public void addData(String item) {\n        data.add(item);\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        DataManager manager = new DataManager();\n        manager.addData(\"example item\");\n        List<String> retrievedData = manager.getData();\n\n        // Modifying the returned reference affects the private data structure.\n        retrievedData.remove(0);\n    }\n}",
+            "summary": "1. A public method in the product returns a reference to a private data structure. 2. The returned reference can be modified by the caller, leading to unintended changes in the private data. 3. This practice compromises encapsulation and can result in security vulnerabilities."
+        }
+    },
+    "496": {
+        "CWE-ID": 496,
+        "Code Example": {
+            "code": "class Example {\n    private int[] privateArray;\n\n    public void setArray(int[] inputArray) {\n        // Vulnerable: Assigning public data to a private array\n        privateArray = inputArray;\n    }\n\n    public int getElement(int index) {\n        return privateArray[index];\n    }\n}",
+            "summary": "1. Assigning public data to a private array can expose the array's contents. \n2. This practice compromises the encapsulation and integrity of the private array. \n3. Attackers can manipulate or access the private data through the public reference."
+        }
+    },
+    "558": {
+        "CWE-ID": 558,
+        "Code Example": {
+            "code": "#include <stdio.h>\n#include <unistd.h>\n#include <pthread.h>\n\nvoid* threadFunction(void* arg) {\n    // Attempt to get the login name in a thread\n    char* username = getlogin();\n    if (username != NULL) {\n        printf(\"Thread %ld: Logged in as %s\\n\", (long)arg, username);\n    } else {\n        printf(\"Thread %ld: Could not get login name\\n\", (long)arg);\n    }\n    return NULL;\n}\n\nint main() {\n    pthread_t threads[2];\n    for (long i = 0; i < 2; i++) {\n        pthread_create(&threads[i], NULL, threadFunction, (void*)i);\n    }\n    for (int i = 0; i < 2; i++) {\n        pthread_join(threads[i], NULL);\n    }\n    return 0;\n}",
+            "summary": "Using the getlogin() function in a multithreaded application can lead to inconsistent or incorrect values being returned, as the function may return the login name of the first thread that successfully retrieves it. This can cause confusion and security issues, especially if different threads expect different user information."
+        }
+    },
+    "560": {
+        "CWE-ID": 560,
+        "Code Example": {
+            "code": "import os\n\n# Incorrect usage of umask with a chmod-style argument\nincorrect_mask = 0o777  # This is chmod-style permission\nos.umask(incorrect_mask)\n\n# Correct usage should define the mask in terms of what permissions to deny instead\ncorrect_mask = 0o022  # This would deny write permission for group and others\nos.umask(correct_mask)",
+            "summary": [
+                "The software improperly calls umask() with a mask that is specified like a chmod() argument.",
+                "Using chmod-style permissions can lead to security vulnerabilities by allowing more permissions than intended.",
+                "Developers should use umask() to define which permissions to deny, rather than what to allow."
+            ]
+        }
+    },
+    "562": {
+        "CWE-ID": 562,
+        "Code Example": {
+            "code": "#include <stdio.h>\n\nint* getStackVariableAddress() {\n    int stackVar = 42; // Stack variable\n    return &stackVar;  // Returning address of stack variable\n}\n\nint main() {\n    int* ptr = getStackVariableAddress(); // ptr may point to invalid memory\n    printf(\"Value: %d\\n\", *ptr); // Dereferencing invalid memory can cause a crash\n    return 0;\n}",
+            "summary": "1. Returning the address of a stack variable can lead to undefined behavior once the function exits, as the stack variable goes out of scope.\n2. Accessing the address after the function returns can cause crashes or corrupted data since the memory is no longer valid.\n3. This risk highlights the importance of managing variable lifetimes and memory access in programs."
+        }
+    },
+    "587": {
+        "CWE-ID": 587,
+        "Code Example": {
+            "code": "#include <stdio.h>\n\nint main() {\n    int *ptr;\n    ptr = (int *)0x12345678; // Assigning a fixed address to pointer\n    printf(\"Pointer address: %p\\n\", (void *)ptr);\n    return 0;\n}",
+            "summary": [
+                "The product sets a pointer to a specific memory address.",
+                "This is problematic as it can lead to undefined behavior if the address is not valid or not accessible.",
+                "Using fixed addresses can lead to security vulnerabilities such as memory corruption or exploitation by an attacker."
+            ]
+        }
+    },
+    "676": {
+        "CWE-ID": 676,
+        "Code Example": {
+            "code": "// Example of potentially dangerous function usage in C\n#include <stdio.h>\n#include <string.h>\n\nvoid unsafeFunction(char *input) {\n    char buffer[10]; // Fixed-size buffer\n    // Dangerous: Using strcpy() can overflow the buffer if input is longer than 10 characters\n    strcpy(buffer, input);  \n    printf(\"Buffer content: %s\\n\", buffer);\n}\n\nint main() {\n    char userInput[50];\n    printf(\"Enter some text: \");\n    fgets(userInput, sizeof(userInput), stdin);  // Read user input safely\n    unsafeFunction(userInput);\n    return 0;\n}",
+            "summary": [
+                "The product uses a function (such as strcpy) that is known to be potentially dangerous due to its lack of built-in bounds checking.",
+                "If used with unvalidated or unchecked input, it can lead to buffer overflows and other security vulnerabilities.",
+                "While the function may be used safely if handled correctly (for example, ensuring input is correctly validated and fits the buffer size), improper usage can introduce significant security risks."
+            ]
+        }
+    },
+    "685": {
+        "CWE-ID": 685,
+        "Code Example": {
+            "code": "def calculate_area(length, width):\n    return length * width\n\n# Incorrect number of arguments\narea = calculate_area(10)  # Missing width argument\n\n# Correct usage\narea_proper = calculate_area(10, 5)",
+            "summary": [
+                "The caller specifies an incorrect number of arguments in a function call.",
+                "Calling a function with too few arguments can lead to undefined behavior.",
+                "This can result in unexpected results, application crashes, or security vulnerabilities."
+            ]
+        }
+    },
+    "688": {
+        "CWE-ID": 688,
+        "Code Example": {
+            "code": "void processValue(int value) {\n    // Process the value\n    printf(\"Processing value: %d\\n\", value);\n}\n\nint main() {\n    int a = 5;\n    int b = 10;\n    // Incorrectly passing the reference of 'b' instead of 'a'\n    processValue(b);\n    // 'b' might not be intended for processing, leading to unexpected results\n    return 0;\n}",
+            "summary": "1. The product calls a function with an incorrect variable or reference as an argument. 2. This misalignment can result in unexpected behavior. 3. It may lead to vulnerabilities if sensitive operations are performed on unintended data. 4. Correct variable reference is crucial to ensure the function operates on the intended data."
+        }
+    },
+    "689": {
+        "CWE-ID": 689,
+        "Code Example": {
+            "code": "def copy_resource(source, destination):\n    # Start the copy operation\n    data = read_resource(source)\n    # Temporary granting of permissions\n    set_temporary_permissions(destination)\n    try:\n        write_resource(destination, data)\n    finally:\n        # Reset permissions after the copy is complete\n        reset_permissions(destination)\n\ndef set_temporary_permissions(resource):\n    # This function sets the permissions for the resource\n    pass  # Implement actual permissions logic here\n\ndef reset_permissions(resource):\n    # This function resets the permissions for the resource\n    pass  # Implement actual permissions logic here\n\ndef read_resource(resource):\n    # Read the resource (dummy implementation)\n    return b'some data'\n\ndef write_resource(resource, data):\n    # Write the data to the resource (dummy implementation)\n    pass  # Implement actual write logic here",
+            "summary": [
+                "The product allows for copying or cloning resources without setting permissions before the operation is complete.",
+                "This oversight exposes resources to unauthorized access during the copy process.",
+                "Proper permission management should be applied to ensure resources remain secure until the copy is finalized."
+            ]
+        }
+    },
+    "690": {
+        "CWE-ID": 690,
+        "Code Example": {
+            "code": "// Example function that may return NULL\nchar* getData() {\n    // Simulate a failure\n    return NULL;\n}\n\n// Function that uses getData() incorrectly\nvoid processData() {\n    char* data = getData();\n    // Unchecked return value leads to potential NULL pointer dereference\n    printf(\"Data: %s\\n\", data); // Undefined behavior if data is NULL\n}",
+            "summary": "1. The product fails to check the return value of a function that may return NULL.\n2. A NULL pointer dereference occurs when attempting to use the unchecked return value.\n3. This vulnerability can lead to application crashes or unintended behavior."
+        }
+    },
+    "704": {
+        "CWE-ID": 704,
+        "Code Example": {
+            "code": "class Animal {\n    public void makeSound() {\n        System.out.println(\"Animal sound\");\n    }\n}\n\nclass Dog extends Animal {\n    public void makeSound() {\n        System.out.println(\"Bark\");\n    }\n}\n\nclass Cat extends Animal {\n    public void makeSound() {\n        System.out.println(\"Meow\");\n    }\n}\n\npublic class TypeConversionExample {\n    public static void main(String[] args) {\n        Animal myDog = new Dog();\n        // Incorrect cast from Animal to Cat\n        Cat myCat = (Cat) myDog;  // This will throw a ClassCastException\n        myCat.makeSound();\n    }\n}",
+            "summary": [
+                "The software does not correctly convert an object from one type to another.",
+                "An incorrect type casting can lead to runtime errors such as ClassCastException.",
+                "This vulnerability can occur when the developer assumes an object is of a certain subtype without sufficient checks."
+            ]
+        }
+    },
+    "733": {
+        "CWE-ID": 733,
+        "Code Example": {
+            "code": "#include <stdio.h> \n\nvoid secureFunction() {\n    printf(\"Executing security-critical code\\n\");\n}\n\nvoid potentiallyVulnerableFunction(int secure) {\n    int shouldExecute = secure;\n    \n    // The following line might be optimized away if \"secure\" is optimized as constant 0\n    if (shouldExecute) {\n        secureFunction();\n    }\n}\n\nint main() {\n    potentiallyVulnerableFunction(0); // Imagine we want to set this to call secureFunction\n    return 0;\n}",
+            "summary": "CWE highlights the risk that a compiler may optimize away security-critical code based on the assumption that it is unreachable. Developers must ensure that critical protection mechanisms are preserved during compilation, as optimization can lead to the removal or alteration of intended security logic."
+        }
+    },
+    "762": {
+        "CWE-ID": 762,
+        "Code Example": {
+            "code": "// Example of Mismatched Memory Management Routines in C++\n#include <cstdlib>\n#include <iostream>\n\nclass MemoryManager {\npublic:\n    void* allocateMemory(size_t size) {\n        // Allocating memory using malloc\n        return malloc(size);\n    }\n\n    void releaseMemory(void* ptr) {\n        // Incorrectly releasing memory using delete, leading to mismatched routines\n        delete ptr;\n    }\n};\n\nint main() {\n    MemoryManager mm;\n    void* allocatedMemory = mm.allocateMemory(10);\n    mm.releaseMemory(allocatedMemory); // This causes undefined behavior\n    return 0;\n}",
+            "summary": "Mismatched Memory Management Routines occur when a program attempts to return memory to the system using a deallocation method that is incompatible with the method used for allocation. This can lead to undefined behavior, such as memory corruption or crashes. It is crucial to match the memory management operations, such as using 'malloc' with 'free' and 'new' with 'delete'."
+        }
+    },
+    "781": {
+        "CWE-ID": 781,
+        "Code Example": {
+            "code": "/* Example of improper address validation in an IOCTL implementation */\n\n#include <linux/ioctl.h>\n#include <linux/kernel.h>\n#include <linux/module.h>\n#include <linux/uaccess.h>\n\n#define IOCTL_CMD _IOW('a', 1, int *)\n\nstatic long device_ioctl(struct file *file, unsigned int cmd, unsigned long arg) {\n    int *user_pointer;\n\n    switch (cmd) {\n        case IOCTL_CMD:\n            // IMPROPER VALIDATION: Does not check if the address pointed by 'arg' is valid\n            user_pointer = (int *)arg;  // Assuming 'arg' is a user-space pointer.\n\n            // Read data from user-space without validation\n            if (copy_from_user(user_pointer, &some_data, sizeof(int))) {\n                return -EFAULT;\n            }\n            break;\n        default:\n            return -EINVAL;\n    }\n\n    return 0;\n}\n\nMODULE_LICENSE(\"GPL\");\nMODULE_AUTHOR(\"Example Author\");\nMODULE_DESCRIPTION(\"Improper Address Validation Example\");",
+            "summary": "1. The IOCTL command uses METHOD_NEITHER for I/O communication. 2. Addresses provided by the user are not properly validated. 3. This can lead to security vulnerabilities, such as information disclosure or arbitrary memory access."
+        }
+    },
+    "782": {
+        "CWE-ID": 782,
+        "Code Example": {
+            "code": "// Example of an exposed IOCTL without proper access control\n\n#include <linux/ioctl.h>\n#include <linux/fs.h>\n#include <linux/uaccess.h>\n#include <linux/slab.h>\n\n#define MY_IOCTL_CMD _IOWR('m', 1, struct my_data)\n\nstruct my_data {\n    int value;\n};\n\nstatic long my_ioctl(struct file *file, unsigned int cmd, unsigned long arg) {\n    struct my_data data;\n\n    // Insufficient access control checks\n    if (cmd == MY_IOCTL_CMD) {\n        if (copy_from_user(&data, (void __user *)arg, sizeof(data))) {\n            return -EFAULT;\n        }\n        // Perform the action without checking the user space permissions\n        printk(KERN_INFO \"Accessing sensitive functionality with value: %d\\n\", data.value);\n    }\n    return 0;\n}\n\nstatic struct file_operations my_fops = {\n    .unlocked_ioctl = my_ioctl,\n};\n\n// The driver should have additional checks to validate access rights before executing the IOCTL command.",
+            "summary": [
+                "The CWE describes a vulnerability where an IOCTL operation exposes sensitive functionality without proper access control.",
+                "This flaw can allow unauthorized users or processes to execute operations that should be restricted.",
+                "The access control mechanisms should be implemented to ensure that only authorized callers can access certain IOCTL services.",
+                "Failure to enforce such controls can lead to privilege escalation or unauthorized actions within the system."
+            ]
+        }
+    },
+    "783": {
+        "CWE-ID": 783,
+        "Code Example": {
+            "code": "int calculateValue(int a, int b, int c) {\n    // Incorrect due to operator precedence\n    return a + b * c;\n}\n\nint main() {\n    int result = calculateValue(2, 3, 4);\n    printf(\"Result: %d\\n\", result); // Outputs 14, expected 20\n    return 0;\n}",
+            "summary": "1. The issue arises from operator precedence, where multiplication (*) takes precedence over addition (+).  \n2. This can lead to unexpected results in calculations.  \n3. To fix this, parentheses should be used to clearly define the intended order of operations."
+        }
+    },
+    "785": {
+        "CWE-ID": 785,
+        "Code Example": {
+            "code": "// Example of vulnerable code in C\n#include <stdio.h>\n#include <string.h>\n#include <limits.h>  // For PATH_MAX\n\nvoid normalize_path(const char *input_path, char *output_path) {\n    // Vulnerable: output_path is not guaranteed to be large enough\n    realpath(input_path, output_path);\n}\n\nint main() {\n    char buffer[50]; // Insufficient buffer size\n    normalize_path(\"/some/very/long/path/to/a/file\", buffer);\n    printf(\"Normalized path: %s\\n\", buffer);\n    return 0;\n}",
+            "summary": [
+                "The software calls a function that normalizes paths or file names.",
+                "It provides an output buffer that is smaller than the maximum possible size, such as PATH_MAX.",
+                "This can lead to buffer overflow vulnerabilities when processing long file or path names."
+            ]
+        }
+    },
+    "787": {
+        "CWE-ID": 787,
+        "Code Example": {
+            "code": "#include <stdio.h>\n#include <string.h>\n\nvoid vulnerableFunction() {\n    char buffer[10];\n    strcpy(buffer, \"This string is way too long for the buffer!\"); // Out-of-bounds write\n}\n\nint main() {\n    vulnerableFunction();\n    return 0;\n}",
+            "summary": "Out-of-bounds write occurs when the program writes data outside the allocated memory buffer. This can lead to data corruption, crashes, or security vulnerabilities such as arbitrary code execution. In this example, the strncpy function attempts to copy a string that exceeds the buffer size, causing an out-of-bounds write."
+        }
+    },
+    "789": {
+        "CWE-ID": 789,
+        "Code Example": {
+            "code": "\n#include <stdio.h>\n#include <stdlib.h>\n\nvoid allocateMemory(size_t size) {\n    // Bad: Allocating memory based on an untrusted size value\n    void *buffer = malloc(size);\n    if(buffer == NULL) {\n        fprintf(stderr, \"Memory allocation failed\\n\");\n        exit(1);\n    }\n    // Use the allocated buffer...\n    free(buffer);\n}\n\nint main() {\n    size_t userInput;\n    printf(\"Enter the size of memory to allocate: \");\n    scanf(\"%zu\", &userInput);\n    allocateMemory(userInput);\n    return 0;\n}",
+            "summary": "1. The product allocates memory based on an untrusted size value provided by the user. 2. There's no validation to ensure that the size is within safe or expected limits. 3. This allows for the possibility of excessive memory allocation, which could lead to denial of service or other security vulnerabilities."
+        }
+    },
+    "805": {
+        "CWE-ID": 805,
+        "Code Example": {
+            "code": "\n#include <stdio.h>\n#include <string.h>\n\nvoid unsafeBufferAccess() {\n    char buffer[10];\n    int length = 15; // Incorrect length value\n\n    // Incorrectly accessing memory beyond the buffer size\n    for (int i = 0; i < length; i++) {\n        buffer[i] = 'A'; // This will cause a buffer overflow\n    }\n}\n\nint main() {\n    unsafeBufferAccess();\n    return 0;\n}",
+            "summary": "This vulnerability occurs when software performs sequential read or write operations on a buffer with an incorrect length, leading to memory access outside the buffer's boundaries. Such improper length handling can result in buffer overflows, potentially allowing attackers to execute arbitrary code or crash the application."
+        }
+    },
+    "806": {
+        "CWE-ID": 806,
+        "Code Example": {
+            "code": "// Example of buffer access using size of source buffer in C/C++\n#include <stdio.h>\n#include <string.h>\n\nvoid unsafeCopy(char *source) {\n    char destination[10];\n    // Using the size of the source buffer without checking its length can lead to buffer overflow\n    size_t source_len = strlen(source);\n    // Dangerous: may write past the end of the destination buffer if source_len > 10\n    memcpy(destination, source, source_len);\n}\n\nint main() {\n    char longString[] = \"This is definitely longer than ten characters\";\n    unsafeCopy(longString); // This call is unsafe and can lead to memory corruption.\n    return 0;\n}",
+            "summary": [
+                "The software uses the size of a source buffer for reading or writing to a destination buffer.",
+                "This practice can lead to accessing memory outside the bounds of the destination buffer.",
+                "Improper handling of buffers can result in buffer overflows, leading to potential security vulnerabilities and system instability.",
+                "It is critical to ensure that the length of the source data does not exceed the destination buffer size before performing memory operations."
+            ]
+        }
+    },
+    "839": {
+        "CWE-ID": 839,
+        "Code Example": {
+            "code": "function checkValue(value) {\n    const MAX_VALUE = 100;\n    const result = value <= MAX_VALUE;\n    return result;\n}\n\n// Example usage\nconst userInput = 150;\nif (checkValue(userInput)) {\n    console.log('Value is within the acceptable range.');\n} else {\n    console.log('Value exceeds the maximum limit.');\n}",
+            "summary": [
+                "The product verifies that a value does not exceed a predefined maximum limit.",
+                "However, it fails to check if the value meets a required minimum threshold.",
+                "This can lead to security vulnerabilities where input values outside the acceptable range are not detected."
+            ]
+        }
+    },
+    "843": {
+        "CWE-ID": 843,
+        "Code Example": {
+            "code": "\n#include <stdio.h>\n#include <stdlib.h>\n\ntypedef struct {\n    int id;\n    char name[20];\n} Student;\n\nint main() {\n    // Allocate memory for a Student object\n    Student *student = (Student *)malloc(sizeof(Student));\n\n    // Initialize the object as a Student\n    student->id = 1;\n    snprintf(student->name, sizeof(student->name), \"Alice\");\n\n    // Type confusion: treating the Student pointer as an integer pointer\n    int *intPtr = (int *)student;\n    *intPtr = 42; // Writing an integer value to a Student structure\n\n    // This causes undefined behavior\n    printf(\"Student ID: %d, Name: %s\\n\", student->id, student->name);\n\n    free(student);\n    return 0;\n}\n",
+            "summary": "Type Confusion occurs when a resource is allocated or initialized using one type, but is later accessed or manipulated using an incompatible type. In this example, a 'Student' structure is allocated and initialized, but it is incorrectly accessed as an integer pointer. This mismatch can lead to undefined behavior, memory corruption, or security vulnerabilities."
+        }
+    },
+    "910": {
+        "CWE-ID": 910,
+        "Code Example": {
+            "code": "#include <unistd.h>\n#include <fcntl.h>\n#include <stdio.h>\n\nint main() {\n    int fd = open(\"example.txt\", O_RDWR | O_CREAT);\n    if (fd == -1) {\n        perror(\"Error opening file\");\n        return 1;\n    }\n\n    // Close the file descriptor\n    close(fd);\n\n    // Attempting to use the closed file descriptor\n    char buffer[100];\n    ssize_t bytesRead = read(fd, buffer, sizeof(buffer)); // This will result in undefined behavior\n    if (bytesRead == -1) {\n        perror(\"Error reading file\");\n    }\n\n    return 0;\n}",
+            "summary": [
+                "This vulnerability occurs when a program uses a file descriptor after it has been closed, leading to undefined behavior or potential security issues.",
+                "Accessing an expired file descriptor can result in errors or data corruption, as the underlying resource is no longer valid.",
+                "Proper management of file descriptors involves ensuring they are not used after being closed to prevent unexpected behavior."
+            ]
+        }
+    },
+    "911": {
+        "CWE-ID": 911,
+        "Code Example": {
+            "code": "class Resource {\n    private int referenceCount;\n\n    public Resource() {\n        this.referenceCount = 0;\n    }\n\n    public void addReference() {\n        // Improperly updates the reference count\n        referenceCount += 1;\n    }\n\n    public void releaseReference() {\n        // This could cause reference count to go negative if called too many times\n        referenceCount -= 1;\n        // Missing check to prevent underflow\n    }\n\n    public int getReferenceCount() {\n        return referenceCount;\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Resource resource = new Resource();\n        resource.addReference();  // Should increment reference count to 1\n        resource.releaseReference(); // Should decrement reference count to 0\n        resource.releaseReference(); // Improper update, could lead to -1\n    }\n}",
+            "summary": [
+                "The product uses a reference count to manage a resource.",
+                "It fails to correctly update the reference count during resource allocation and deallocation.",
+                "This may lead to incorrect memory management, causing resources to be prematurely freed or memory leaks."
+            ]
+        }
+    },
+    "1325": {
+        "CWE-ID": 1325,
+        "Code Example": {
+            "code": "class MemoryAllocator {\n    private List<Object> objects = new ArrayList<>();\n    private final int MAX_MEMORY = 1024; // Maximum allowed memory in bytes\n    private int currentMemoryUsage = 0;\n\n    public void allocateObject(int size) throws Exception {\n        if (currentMemoryUsage + size > MAX_MEMORY) {\n            throw new Exception(\"Memory limit exceeded\");\n        }\n        Object newObject = new byte[size]; // Allocate memory\n        objects.add(newObject);\n        currentMemoryUsage += size;\n    }\n}\n\npublic class TestAllocator {\n    public static void main(String[] args) {\n        MemoryAllocator allocator = new MemoryAllocator();\n        try {\n            allocator.allocateObject(500);\n            allocator.allocateObject(600); // This will throw an exception\n        } catch (Exception e) {\n            System.out.println(e.getMessage());\n        }\n    }\n}",
+            "summary": "1. Improperly controlled sequential memory allocation occurs when a system allocates memory for multiple objects without adequately managing the total allocated size. \n2. This can lead to excessive memory consumption and potential denial of service due to exhaustion of memory resources. \n3. Proper controls should be implemented to limit memory allocation based on pre-defined thresholds to prevent such issues."
+        }
+    },
+    "1335": {
+        "CWE-ID": 1335,
+        "Code Example": {
+            "code": "public class BitwiseShiftExample {\n    public static void main(String[] args) {\n        int value = 10; // binary: 1010\n        int shiftAmount = -1; // Invalid shift amount\n        int result = value << shiftAmount; // This will cause undefined behavior\n        System.out.println(\"Result: \" + result);\n    }\n}",
+            "summary": "The CWE 'Incorrect Bitwise Shift of Integer' occurs when an integer is shifted by a negative amount or by an amount that is equal to or exceeds the number of bits in the integer. This can lead to unexpected behaviors or results. In the given example, shifting the integer 10 by -1 is an incorrect operation that does not follow the rules of bitwise shifting."
+        }
+    },
+    "1341": {
+        "CWE-ID": 1341,
+        "Code Example": {
+            "code": "void releaseResource(Resource res) {\n    if (res.isOpen()) {\n        res.close(); // First close\n    }\n    res.close(); // Second close - potential double release\n}",
+            "summary": [
+                "The CWE describes a scenario where a resource or handle is closed more than once without being successfully reopened in between.",
+                "This can lead to issues such as resource leaks or crashes due to invalid state.",
+                "Proper management of resource lifespan is essential to prevent this type of vulnerability."
+            ]
+        }
+    }
+}

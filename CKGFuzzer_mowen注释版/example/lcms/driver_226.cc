@@ -1,0 +1,96 @@
+#include "lcms2.h"
+#include <stdlib.h>
+#include <string.h>
+#include <stdint.h>
+
+// Function to safely copy a string from fuzz input to a buffer
+void safe_strncpy(char* dest, const uint8_t* src, size_t size, size_t max_len) {
+    size_t len = size < max_len ? size : max_len - 1;
+    memcpy(dest, src, len);
+    dest[len] = '\0';
+}
+
+// Function to safely copy a wide string from fuzz input to a buffer
+void safe_wcsncpy(wchar_t* dest, const uint8_t* src, size_t size, size_t max_len) {
+    size_t len = size / sizeof(wchar_t) < max_len ? size / sizeof(wchar_t) : max_len - 1;
+    memcpy(dest, src, len * sizeof(wchar_t));
+    dest[len] = L'\0';
+}
+
+extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
+    // Ensure we have enough data to proceed
+    if (size < 16) return 0;
+
+    // Initialize variables
+    cmsHPROFILE hProfile = cmsCreateProfilePlaceholder(NULL);
+    if (!hProfile) return 0;
+
+    cmsUInt32Number Intent = data[0];
+    cmsUInt32Number UsedDirection = data[1];
+    cmsUInt32Number dwFlags = data[2];
+    char LanguageCode[3] = {0};
+    char CountryCode[3] = {0};
+    wchar_t Buffer[256] = {0};
+    cmsUInt32Number BufferSize = sizeof(Buffer) / sizeof(Buffer[0]);
+
+    // Extract language and country codes from fuzz input
+    safe_strncpy(LanguageCode, data + 3, 2, sizeof(LanguageCode));
+    safe_strncpy(CountryCode, data + 5, 2, sizeof(CountryCode));
+
+    // API 1: cmsIsCLUT
+    cmsBool isCLUT = cmsIsCLUT(hProfile, Intent, UsedDirection);
+    if (isCLUT) {
+        // Handle success
+    } else {
+        // Handle error
+    }
+
+    // API 2: cmsIsMatrixShaper
+    cmsBool isMatrixShaper = cmsIsMatrixShaper(hProfile);
+    if (isMatrixShaper) {
+        // Handle success
+    } else {
+        // Handle error
+    }
+
+    // API 3: cmsGetPostScriptCSA
+    void* CSA_Buffer = malloc(1024);
+    if (!CSA_Buffer) {
+        cmsCloseProfile(hProfile);
+        return 0;
+    }
+    cmsUInt32Number CSA_BytesUsed = cmsGetPostScriptCSA(NULL, hProfile, Intent, dwFlags, CSA_Buffer, 1024);
+    if (CSA_BytesUsed > 0) {
+        // Handle success
+    } else {
+        // Handle error
+    }
+    free(CSA_Buffer);
+
+    // API 4: cmsGetPostScriptCRD
+    void* CRD_Buffer = malloc(1024);
+    if (!CRD_Buffer) {
+        cmsCloseProfile(hProfile);
+        return 0;
+    }
+    cmsUInt32Number CRD_BytesUsed = cmsGetPostScriptCRD(NULL, hProfile, Intent, dwFlags, CRD_Buffer, 1024);
+    if (CRD_BytesUsed > 0) {
+        // Handle success
+    } else {
+        // Handle error
+    }
+    free(CRD_Buffer);
+
+    // API 5: cmsGetProfileInfo
+    cmsUInt32Number InfoBytesUsed = cmsGetProfileInfo(hProfile, cmsInfoDescription, LanguageCode, CountryCode, Buffer, BufferSize);
+    if (InfoBytesUsed > 0) {
+        // Handle success
+    } else {
+        // Handle error
+    }
+
+    // Clean up
+    cmsCloseProfile(hProfile);
+
+    return 0;
+}
