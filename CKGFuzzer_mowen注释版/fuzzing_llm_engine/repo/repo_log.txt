@@ -1,0 +1,6 @@
+2025-03-13 17:18:02.395 | INFO     | __main__:_add_local_repo_to_database:93 - mowen_project_dir: /home/mowen/CKGFuzzer_mowen/fuzzing_llm_engine/projects/c-ares
+2025-03-13 17:19:16.109 | INFO     | __main__:_add_local_repo_to_database:93 - 默文: /home/mowen/CKGFuzzer_mowen/fuzzing_llm_engine/projects/c-ares
+2025-03-13 17:19:34.301 | ERROR    | __main__:_add_local_repo_to_database:93 - mowen: /home/mowen/CKGFuzzer_mowen/fuzzing_llm_engine/projects/c-ares
+2025-03-13 17:20:09.491 | ERROR    | __main__:_add_local_repo_to_database:94 - mowen: /home/mowen/CKGFuzzer_mowen/fuzzing_llm_engine/projects/c-ares
+2025-03-13 17:21:31.338 | ERROR    | __main__:_add_local_repo_to_database:94 - mowen: /home/mowen/CKGFuzzer_mowen/fuzzing_llm_engine/projects/c-ares
+2025-03-13 17:22:08.911 | ERROR    | __main__:_add_local_repo_to_database:94 - mowen: /home/mowen/CKGFuzzer_mowen/fuzzing_llm_engine/projects/c-ares
