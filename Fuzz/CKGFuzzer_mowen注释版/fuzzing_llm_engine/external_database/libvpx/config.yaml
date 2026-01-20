@@ -1,0 +1,41 @@
+# Project Configuration
+config:
+  project_name: "libvpx"
+  program_language: "c++"
+  fuzz_projects_dir: "/CKGFuzzer/fuzzing_llm_engine/external_database/libvpx/"
+  work_dir: "/CKGFuzzer/"
+  shared_dir: "/CKGFuzzer/docker_shared/"
+  report_target_dir: "/linux/src/libvpx"
+  time_budget: "5m"
+
+  headers:
+    - <vpx/vp8dx.h>
+    - <vpx/vp8cx.h>
+    - <vpx/vpx_decoder.h>
+    - <stdlib.h>
+    - <string.h>
+    - <stdint.h>
+    - <sstream>
+  
+
+
+llm_embedding:
+
+
+# DeepSeek Analyzer Configuration
+llm_analyzer:
+  api_key: ""
+  model: "deepseek-chat"
+  #proxy: "http://<ip>:<port>"
+  base_url: "https://api.deepseek.com/v1"
+  temperature: 1.0
+
+
+# DeepSeek Coder Configuration
+llm_coder:
+  api_key: ""
+  model: "deepseek-coder"
+  #proxy: "http://<ip>:<port>"
+  base_url: "https://api.deepseek.com/v1"
+  temperature: 0.7
+

@@ -1,7 +1,0 @@
-[
-    "ares_destroy",
-    "ares_init",
-    "ares_gethostbyname",
-    "ares_send"
-]
-  
