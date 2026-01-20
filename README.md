@@ -1,5 +1,8 @@
-Kernel学习的一些例题
-相关知识点和题解都在先知论坛：[默文 的个人主页 - 先知社区](https://xz.aliyun.com/users/154057/news)
+以下是作者的相关论坛主页
+
+看雪论坛：[默文的看雪论坛](https://bbs.kanxue.com/user-1026022-1.htm)
+
+先知论坛：[默文 的个人主页 - 先知社区](https://xz.aliyun.com/users/154057/news)
 
 
 
@@ -8,6 +11,7 @@ Kernel学习的一些例题
 1. CVE-2022-2602
 1. CVE-2023-2598
 1. CVE-2024-0582
+1. CVE-2021-1732
 
 ------
 
@@ -48,3 +52,11 @@ Kernel学习的一些例题
 **Vulnerability**: 漏洞本质是 `uaf`。从内核版本 **5.7** 开始，为了便于管理不同的缓冲区集，`io_uring` 允许应用程序注册由组 ID 标识的缓冲区池。通过 `io_uring_register`的 `opcode->IORING_REGISTER_PBUF_RING`调用 `io_register_pbuf_ring()` 来完成注册ID标识缓冲区。并从内核版本 **6.4** 开始，`io_uring` 还允许用户将提供的缓冲区环的分配委托给内核，由 `IOU_PBUF_RING_MMAP`标识符即可生成。调用 `IOU_PBUF_RING_MMAP` 由内核完成分配空间后，然后使用 `mmap()`标识符映射到用户的地址,但是这个操作不会修改**页面结构(pgae)的引用计数**，然后使用 `io_unregister_pbuf_ring()`释放申请的空间的时候会调用 `put_page_testzero(page)`，对 `page` 引用`-1`并判断引用是否为 **0**，如果为 **0** 就会释放 `page` ，因为 `mmap` 映射的时候并不会**页面结构(pgae)的引用计数**，内核并不知道是否取消了内存的映射。所以就会出现映射未取消就释放 `page` 的情况，而导致用户虚拟地址对物理地址映射未取消的 `UAF` 。
 
 ![image-20250320154540206](./assets/image-20250320154540206.png)
+
+#### 4.CVE-2021-1732
+
+**Test version**: Windows 10 17763
+
+**Vulnerability**: 漏洞核心不只是“未初始化内存”本身，而是 **win32k 的 KernelCallback 信任边界失效**：在创建窗口并分配 `WndExtra` 的流程中，内核会通过 `KeUserModeCallback` 调用用户态回调（如 `xxxClientAllocWindowClassExtraBytes`，函数指针来自 `PEB->KernelCallbackTable`），并将用户态 `NtCallbackReturn` 返回的数据写回内核对象字段。攻击者在回调窗口期内调用 `NtUserConsoleControl` 切换窗口的关键标志位（常见描述为 `0x800` 的 ConsoleWindow 相关语义），导致同一个字段（如 `tagWND` 中保存 `WndExtra` 的值）在后续被内核 **按“offset（相对 kernel desktop heap base 的偏移）”而非“pointer（用户态指针）”解释**。当攻击者再通过 `NtCallbackReturn` 返回可控数值时，就会出现 **字段值与解释语义不同步（out-of-sync）** 的类型/语义混淆，最终在 `kernel desktop heap` 相关地址计算中产生 **越界读写（OOB R/W）**。利用上通常先把相邻窗口对象的关键字段（如 `cbWndExtra`、`spmenu` 等）打坏/扩展读写范围，将 OOB 放大为稳定的 **任意读 + 任意写**，最后通过遍历 `EPROCESS->ActiveProcessLinks` 找到 PID 4 的 SYSTEM Token 并替换当前进程 Token，实现本地提权到 SYSTEM。
+
+![image-20260120134227989](assets/image-20260120134227989.png)
