@@ -12,6 +12,7 @@
 1. CVE-2023-2598
 1. CVE-2024-0582
 1. CVE-2021-1732
+1. CVE-2021-40449
 
 ------
 
@@ -60,3 +61,11 @@
 **Vulnerability**: 漏洞核心不只是“未初始化内存”本身，而是 **win32k 的 KernelCallback 信任边界失效**：在创建窗口并分配 `WndExtra` 的流程中，内核会通过 `KeUserModeCallback` 调用用户态回调（如 `xxxClientAllocWindowClassExtraBytes`，函数指针来自 `PEB->KernelCallbackTable`），并将用户态 `NtCallbackReturn` 返回的数据写回内核对象字段。攻击者在回调窗口期内调用 `NtUserConsoleControl` 切换窗口的关键标志位（常见描述为 `0x800` 的 ConsoleWindow 相关语义），导致同一个字段（如 `tagWND` 中保存 `WndExtra` 的值）在后续被内核 **按“offset（相对 kernel desktop heap base 的偏移）”而非“pointer（用户态指针）”解释**。当攻击者再通过 `NtCallbackReturn` 返回可控数值时，就会出现 **字段值与解释语义不同步（out-of-sync）** 的类型/语义混淆，最终在 `kernel desktop heap` 相关地址计算中产生 **越界读写（OOB R/W）**。利用上通常先把相邻窗口对象的关键字段（如 `cbWndExtra`、`spmenu` 等）打坏/扩展读写范围，将 OOB 放大为稳定的 **任意读 + 任意写**，最后通过遍历 `EPROCESS->ActiveProcessLinks` 找到 PID 4 的 SYSTEM Token 并替换当前进程 Token，实现本地提权到 SYSTEM。
 
 ![image-20260120134227989](assets/image-20260120134227989.png)
+
+#### 5.CVE-2021-40449
+
+**Test version**: Windows 10 17763
+
+**Vulnerability**: 漏洞核心不仅仅只是在于 `ResetDC` 本身，而是 **GDI 打印路径中的用户态驱动回调（UMPD callback）形成了信任边界缺口**：在 `ResetDC` 触发的 DC 重建过程中，内核需要依据新的 `DEVMODE` 重建 `DC / PDEV / SURFACE`，由于打印机驱动大量实现于用户态（UMPD），内核会通过 `PDEV->apfn[]` 的函数表回调到用户态驱动例程（典型如 `UMPDDrvResetPDEV`，以及创建流程中的 `DrvEnablePDEV` 等）。该回调发生在 **旧 DC 已清理、新 DC 尚未完全绑定/一致性未恢复** 的关键窗口期内；攻击者可通过伪造/劫持 `PDEV` 的回调函数指针或利用回调期间的对象状态不一致（例如提前释放、替换内部指针/句柄、破坏引用计数或结构字段），制造 **Use-After-Free / 对象混淆 / 任意函数指针调用** 等内核态异常控制流，进而获得稳定的读写原语。利用链中借助可控的大池块（`ThNm`）布置伪造结构(`RTL_BITMAP`)，然后调用 `RtlSetAllBits` 位图操作把目标内核地址范围写成全 1，从而将 `_TOKEN.Privileges`（`Present/Enabled`）置满以开启全部特权，最终配合 token 操作/进程句柄能力完成本地提权到 SYSTEM。
+
+![image-20260203143928274](assets/image-20260203143928274.png)
