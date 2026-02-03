@@ -1,1 +1,9 @@
 CVE/kernel_img/
+# Visual Studio
+.vs/
+*.ipch
+*.aps
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
