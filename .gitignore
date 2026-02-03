@@ -7,3 +7,5 @@ CVE/kernel_img/
 *.user
 *.userosscache
 *.sln.docstates
+
+.vscode/
